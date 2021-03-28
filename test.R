@@ -2,7 +2,6 @@ install.packages("RonFHIR")
 
 library(RonFHIR)
 
-#client <- fhirClient$new("http://hapi.fhir.org/baseR4")
 
 client <- fhirClient$new("https://r4.test.pyrohealth.net/fhir")
 
