@@ -53,11 +53,15 @@ getPatientRespiatoryRate <- function(patientId, client){
   }
   
   df <- do.call(rbind, 
-                Map(data.frame, DATE=dateList, RESP=valueList, UNIT=unitList, PATIENTID=patientIdList))
+                Map(data.frame,
+                    DATE=dateList,
+                    RESP=valueList,
+                    UNIT=unitList,
+                    PATIENTID=patientIdList))
   return (df) 
 }
 #Save respiratory rate in df
-patientResp <- getPatientRespiatoryRate("1568313", client)
+patientResp <- getPatientRespiatoryRate("1565953", client)
 
 #Display in plot
 ggplot(data = patientResp, aes(x = as.Date(DATE), y = RESP)) + 
@@ -67,7 +71,8 @@ ggplot(data = patientResp, aes(x = as.Date(DATE), y = RESP)) +
 
 
 
-###Print for all patients
+#########################Print for all patients
+
 #Create empty dataframe
 allPatients <- 
   data.frame(DATE=as.Date(character()),
@@ -90,3 +95,15 @@ ggplot(data = allPatients, aes(x = as.Date(DATE), y = RESP, color=PATIENTID)) +
     #limits = c(Sys.Date() - 200, NA),
     date_labels = "%d-%m-%Y")+
   labs(x = "Date", y = "Breaths per minute", title = "Respiratory rate")
+
+#Get patients and id
+getPatientList <- function(client){
+  bundle <- client$search("Patient",   c("gender=female", "birthdate=gt1900-06-27"))
+  patients <- c()
+  for(row in 1:nrow(bundle$entry)) {
+    res <- bundle$entry[row, "resource"]
+    patients <- c(patients, res$id)
+  }
+  return(patients)
+}
+
