@@ -3,6 +3,7 @@ library(shiny)
 library(shinydashboard)
 source("hapi.R")
 source("heartRate.R")
+source("bodyTemperature.R")
 
 client <- fhirClient$new("http://hapi.fhir.org/baseR4")
 
@@ -13,16 +14,19 @@ ui <- dashboardPage(
   dashboardBody(
     # Boxes need to be put in a row (or column)
     fluidRow(
-      fluidRow(
-        column(width = 12,
-          box(plotOutput("plot1", height = 250)),
-          box(
-            title = "Controls",
-            selectInput("patientId", "Choose Patient", getPatientList(client)),
-          ),
+      column(width = 12,
+        box(plotOutput("plot1", height = 250)),
+        box(
+          title = "Controls",
+          selectInput("patientId", "Choose Patient", getPatientList(client)),
         ),
-      ),
-      box(plotOutput("plot2", height = 250)),
+      )
+    ),
+    fluidRow(
+      column(width = 12,
+        box(plotOutput("plot2", height = 250)),
+        box(plotOutput("plot3", height = 250)),
+      )
     )
   )
 )
@@ -63,6 +67,24 @@ server <- function(input, output) {
           title = paste("Heart rate (for patient ", input$patientId, ")", sep =""))
     }
   })
+   
+   output$plot3 <- renderPlot({
+     patientData <- getPatientBodyTemperature(input$patientId, client)
+     if (is.null(patientData)){
+       ggplot() +
+         theme_void() +
+         geom_text(aes(0,0,label=paste('No data for patientId', input$patientId, sep = " "))) +
+         xlab(NULL)
+     }else{
+       ggplot(data = patientData, aes(x = as.Date(DATE), y = RESP)) + 
+         geom_point() + 
+         geom_line() +
+         labs(
+           x = "Date", 
+           y = "Body Temperature", 
+           title = paste("Body Temperature (for patient ", input$patientId, ")", sep =""))
+     }
+   })
 }
 
 shinyApp(ui, server)
